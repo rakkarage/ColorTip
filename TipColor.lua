@@ -1,183 +1,97 @@
-TipColorDB = TipColorDB or {}
+-- Live cache (mouseover only)
+local cache = {}
 
-local default_config = {
-    ENABLE      = true,
-    COLOR       = true, -- Faction / class coloring
-    GUILD       = true, -- Guild coloring
-    PARTY       = true, -- Party coloring
-    GUILDLABEL  = true,
-    PLAYERLABEL = true,
-    PVPLABEL    = true,
-}
-
--- Event-driven cache for live unit info
-local liveCache = {}
-
--- Helper: merge defaults
-local function EnsureDefaults()
-    for k, v in pairs(default_config) do
-        if TipColorDB[k] == nil then
-            TipColorDB[k] = v
-        end
-    end
-end
-
--- Merge defaults immediately
-EnsureDefaults()
-
--- Modern Options Frame
-local function CreateOptionsFrame()
-    local f = CreateFrame("Frame", "TipColorOptions", UIParent, "UIPanelDialogTemplate")
-    f:SetSize(280, 300)
-    f:SetPoint("CENTER")
-    f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    f.title:SetPoint("TOP", 0, -10)
-    f.title:SetText("TipColor Options")
-
-    f.checks = {}
-
-    local i = 0
-    for key, label in pairs({
-        ENABLE = "Enable TipColor",
-        COLOR = "Faction / Class Coloring",
-        GUILD = "Guild Coloring",
-        PARTY = "Party Coloring",
-        GUILDLABEL = "Guild Label",
-        PLAYERLABEL = "Player Label",
-        PVPLABEL = "PvP Label",
-    }) do
-        i = i + 1
-        local cb = CreateFrame("CheckButton", "TipColorOptionsCheck" .. i, f, "UICheckButtonTemplate")
-        cb:SetPoint("TOPLEFT", 20, -30 * i)
-        cb.text:SetText(label)
-        cb:SetChecked(TipColorDB[key])
-        cb:SetScript("OnClick", function(self)
-            TipColorDB[key] = self:GetChecked()
-        end)
-        f.checks[key] = cb
-    end
-
-    UIPanelWindows["TipColorOptions"] = { area = "center", pushable = 0, whileDead = 1 }
-    return f
-end
-
--- Create once
-local OptionsFrame = CreateOptionsFrame()
-
--- Slash command
-SLASH_TIPCOLOR1 = "/tipcolor"
-SLASH_TIPCOLOR2 = "/tc"
-SlashCmdList["TIPCOLOR"] = function()
-    OptionsFrame:Show()
-end
-
--- Event frame for caching live unit info
-local EventFrame = CreateFrame("Frame")
-EventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
-EventFrame:SetScript("OnEvent", function(self, event)
-    if event == "UPDATE_MOUSEOVER_UNIT" then
-        local unit = "mouseover"
-        if UnitExists(unit) then
-            local guid = UnitGUID(unit)
-            if guid then
-                liveCache[guid] = {
-                    isPlayer = UnitIsPlayer(unit),
-                    guild = GetGuildInfo(unit),
-                    inParty = UnitInParty(unit),
-                    faction = UnitFactionGroup(unit),
-                }
-            end
-        end
-    end
+local f = CreateFrame("Frame")
+f:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+f:SetScript("OnEvent", function()
+    local u = "mouseover"
+    if not UnitExists(u) then return end
+    local g = UnitGUID(u)
+    if not g then return end
+    cache[g] = {
+        guild   = GetGuildInfo(u),
+        inParty = UnitInParty(u),
+        faction = UnitFactionGroup(u),
+    }
 end)
 
--- Tooltip coloring callback
-local function TipColor_SetBackground(tooltip, data)
-    if not tooltip or not data or not TipColorDB.ENABLE then return end
-    if data.type ~= Enum.TooltipDataType.Unit then return end
+local function ColorTooltip(tt, data)
+    if not data or data.type ~= Enum.TooltipDataType.Unit then return end
 
     local r, g, b
 
-    -- Use snapshot info (Retail-safe)
+    -- Class color (players)
     if data.isPlayer and data.class then
-        local color = C_ClassColor.GetClassColor(data.class)
-        if color then r, g, b = color.r, color.g, color.b end
-    else
-        local reaction = data.reaction
-        if reaction then
-            if reaction >= 5 then
-                r, g, b = 0.2, 0.8, 0.2          -- friendly NPC
-            elseif reaction == 4 then
-                r, g, b = 0.9, 0.9, 0            -- neutral NPC
-            else
-                r, g, b = 0.9, 0.1, 0.1          -- hostile NPC
-            end
+        local c = C_ClassColor.GetClassColor(data.class)
+        if c then r, g, b = c.r, c.g, c.b end
+    end
+
+    -- Reaction fallback (NPCs)
+    if not r then
+        local reaction = data.reaction or 4
+        if reaction >= 5 then
+            r, g, b = 0.2, 0.8, 0.2
+        elseif reaction == 4 then
+            r, g, b = 0.9, 0.9, 0
         else
-            r, g, b = 1, 1, 1
+            r, g, b = 0.9, 0.1, 0.1
         end
     end
 
-    -- Attempt live cache overrides (guild, party)
-    if data.guid and liveCache[data.guid] then
-        local cache = liveCache[data.guid]
-        -- Guild coloring
-        if TipColorDB.GUILD and cache.guild then
-            r, g, b = 0.4, 1.0, 1.0
-        end
-        -- Party coloring
-        if TipColorDB.PARTY and cache.inParty then
-            r, g, b = 0.8, 0.4, 1.0
+    local c = data.guid and cache[data.guid]
+
+    -- Guild override
+    if c and c.guild then
+        r, g, b = 0.4, 1, 1
+    end
+
+    -- Party override
+    if c and c.inParty then
+        r, g, b = 0.8, 0.4, 1
+    end
+
+    -- Apply background
+    if tt.NineSlice then
+        tt.NineSlice:SetCenterColor(r, g, b)
+    end
+
+    -- Apply status bar color (HP bar)
+    if tt.StatusBar and tt.StatusBar:GetStatusBarTexture() then
+        tt.StatusBar:GetStatusBarTexture():SetVertexColor(r, g, b)
+    end
+
+    -- Guild label
+    if c and c.guild and tt.TextLeft2 then
+        tt.TextLeft2:SetTextColor(1, 0.84, 0)
+        tt.TextLeft2:SetText("<" .. c.guild .. ">")
+    end
+
+    -- Strip "(Player)"
+    for i = 2, 3 do
+        local l = tt["TextLeft" .. i]
+        if l and l:GetText() then
+            l:SetText(l:GetText():gsub(" [(]Player[)]", ""))
         end
     end
 
-    -- Apply color
-    if tooltip.NineSlice and r then
-        tooltip.NineSlice:SetCenterColor(r, g, b)
-    end
-
-    -- Labels
-    if TipColorDB.GUILDLABEL and data.guid and liveCache[data.guid] then
-        local guild = liveCache[data.guid].guild
-        if guild and tooltip.TextLeft2 and tooltip.TextLeft2:IsVisible() then
-            tooltip.TextLeft2:SetTextColor(1, 0.84, 0)
-            tooltip.TextLeft2:SetText("<" .. guild .. ">")
-        end
-    end
-
-    if TipColorDB.PLAYERLABEL then
-        for i = 2, 3 do
-            local line = tooltip["TextLeft" .. i]
-            if line then
-                local text = line:GetText()
-                if text then
-                    line:SetText(string.gsub(text, " [(]Player[)]", ""))
+    -- Strip PvP + faction
+    local faction = data.faction or (c and c.faction)
+    for i = 3, 6 do
+        local l = tt["TextLeft" .. i]
+        local rLine = tt["TextRight" .. i]
+        if l and l:GetText() then
+            local t = l:GetText():gsub("PvP", "")
+            if faction then t = t:gsub(faction, "") end
+            if t == "" then
+                l:SetText(""); l:Hide()
+                if rLine then
+                    rLine:SetText(""); rLine:Hide()
                 end
-            end
-        end
-    end
-
-    if TipColorDB.PVPLABEL then
-        local faction = data.faction or (data.guid and liveCache[data.guid] and liveCache[data.guid].faction)
-        if faction then
-            for i = 3, 6 do
-                local left = tooltip["TextLeft" .. i]
-                local right = tooltip["TextRight" .. i]
-                if left and left:GetText() then
-                    local newText = string.gsub(left:GetText(), "PvP", "")
-                    newText = string.gsub(newText, faction, "")
-                    if newText == "" then
-                        left:SetText(""); left:Hide()
-                        if right then
-                            right:SetText(""); right:Hide()
-                        end
-                    else
-                        left:SetText(newText)
-                    end
-                end
+            else
+                l:SetText(t)
             end
         end
     end
 end
 
--- Hook safe callback
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, TipColor_SetBackground)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, ColorTooltip)
