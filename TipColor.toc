@@ -1,0 +1,11 @@
+## Interface: 120000
+## Version: v2026
+## Title: TipColor
+## Category: User Interface
+## Notes: Dynamic tooltip color and icons.
+## Author: rakkarage
+## SavedVariables: TipColorDB
+## AddonCompartmentFunc: TipColor_AddonCompartmentClick
+## IconTexture: Interface/AddOns/TipColor/TipColor.png
+
+TipColor.lua
