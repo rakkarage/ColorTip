@@ -1,4 +1,4 @@
-ColoredTooltips_Config = ColoredTooltips_Config or {}
+TipColorDB = TipColorDB or {}
 
 local default_config = {
     ENABLE      = true,
@@ -16,8 +16,8 @@ local liveCache = {}
 -- Helper: merge defaults
 local function EnsureDefaults()
     for k, v in pairs(default_config) do
-        if ColoredTooltips_Config[k] == nil then
-            ColoredTooltips_Config[k] = v
+        if TipColorDB[k] == nil then
+            TipColorDB[k] = v
         end
     end
 end
@@ -27,18 +27,18 @@ EnsureDefaults()
 
 -- Modern Options Frame
 local function CreateOptionsFrame()
-    local f = CreateFrame("Frame", "ColoredTooltipsOptions", UIParent, "UIPanelDialogTemplate")
+    local f = CreateFrame("Frame", "TipColorOptions", UIParent, "UIPanelDialogTemplate")
     f:SetSize(280, 300)
     f:SetPoint("CENTER")
     f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     f.title:SetPoint("TOP", 0, -10)
-    f.title:SetText("Colored Tooltips Options")
+    f.title:SetText("TipColor Options")
 
     f.checks = {}
 
     local i = 0
     for key, label in pairs({
-        ENABLE = "Enable Colored Tooltips",
+        ENABLE = "Enable TipColor",
         COLOR = "Faction / Class Coloring",
         GUILD = "Guild Coloring",
         PARTY = "Party Coloring",
@@ -47,17 +47,17 @@ local function CreateOptionsFrame()
         PVPLABEL = "PvP Label",
     }) do
         i = i + 1
-        local cb = CreateFrame("CheckButton", "ColoredTooltipsOptionsCheck" .. i, f, "UICheckButtonTemplate")
+        local cb = CreateFrame("CheckButton", "TipColorOptionsCheck" .. i, f, "UICheckButtonTemplate")
         cb:SetPoint("TOPLEFT", 20, -30 * i)
         cb.text:SetText(label)
-        cb:SetChecked(ColoredTooltips_Config[key])
+        cb:SetChecked(TipColorDB[key])
         cb:SetScript("OnClick", function(self)
-            ColoredTooltips_Config[key] = self:GetChecked()
+            TipColorDB[key] = self:GetChecked()
         end)
         f.checks[key] = cb
     end
 
-    UIPanelWindows["ColoredTooltipsOptions"] = { area = "center", pushable = 0, whileDead = 1 }
+    UIPanelWindows["TipColorOptions"] = { area = "center", pushable = 0, whileDead = 1 }
     return f
 end
 
@@ -65,9 +65,9 @@ end
 local OptionsFrame = CreateOptionsFrame()
 
 -- Slash command
-SLASH_COLOREDTOOLTIPS1 = "/coloredtooltips"
-SLASH_COLOREDTOOLTIPS2 = "/colortool"
-SlashCmdList["COLOREDTOOLTIPS"] = function()
+SLASH_TIPCOLOR1 = "/tipcolor"
+SLASH_TIPCOLOR2 = "/tc"
+SlashCmdList["TIPCOLOR"] = function()
     OptionsFrame:Show()
 end
 
@@ -92,8 +92,8 @@ EventFrame:SetScript("OnEvent", function(self, event)
 end)
 
 -- Tooltip coloring callback
-local function ColoredTooltips_SetBackground(tooltip, data)
-    if not tooltip or not data or not ColoredTooltips_Config.ENABLE then return end
+local function TipColor_SetBackground(tooltip, data)
+    if not tooltip or not data or not TipColorDB.ENABLE then return end
     if data.type ~= Enum.TooltipDataType.Unit then return end
 
     local r, g, b
@@ -121,11 +121,11 @@ local function ColoredTooltips_SetBackground(tooltip, data)
     if data.guid and liveCache[data.guid] then
         local cache = liveCache[data.guid]
         -- Guild coloring
-        if ColoredTooltips_Config.GUILD and cache.guild then
+        if TipColorDB.GUILD and cache.guild then
             r, g, b = 0.4, 1.0, 1.0
         end
         -- Party coloring
-        if ColoredTooltips_Config.PARTY and cache.inParty then
+        if TipColorDB.PARTY and cache.inParty then
             r, g, b = 0.8, 0.4, 1.0
         end
     end
@@ -136,7 +136,7 @@ local function ColoredTooltips_SetBackground(tooltip, data)
     end
 
     -- Labels
-    if ColoredTooltips_Config.GUILDLABEL and data.guid and liveCache[data.guid] then
+    if TipColorDB.GUILDLABEL and data.guid and liveCache[data.guid] then
         local guild = liveCache[data.guid].guild
         if guild and tooltip.TextLeft2 and tooltip.TextLeft2:IsVisible() then
             tooltip.TextLeft2:SetTextColor(1, 0.84, 0)
@@ -144,7 +144,7 @@ local function ColoredTooltips_SetBackground(tooltip, data)
         end
     end
 
-    if ColoredTooltips_Config.PLAYERLABEL then
+    if TipColorDB.PLAYERLABEL then
         for i = 2, 3 do
             local line = tooltip["TextLeft" .. i]
             if line then
@@ -156,7 +156,7 @@ local function ColoredTooltips_SetBackground(tooltip, data)
         end
     end
 
-    if ColoredTooltips_Config.PVPLABEL then
+    if TipColorDB.PVPLABEL then
         local faction = data.faction or (data.guid and liveCache[data.guid] and liveCache[data.guid].faction)
         if faction then
             for i = 3, 6 do
@@ -180,4 +180,4 @@ local function ColoredTooltips_SetBackground(tooltip, data)
 end
 
 -- Hook safe callback
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, ColoredTooltips_SetBackground)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, TipColor_SetBackground)
