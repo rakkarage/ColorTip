@@ -1,9 +1,9 @@
-## Interface: 120000
-## Version: v2026
-## Title: TipColor
+## Interface: 120001
+## Version: v2026.3
+## Title: ColorTip
 ## Category: User Interface
-## Notes: Dynamic tooltip color and icons.
+## Notes: Dynamic (class & reaction) tooltip border & tooltip healthbar color.
 ## Author: rakkarage
-## IconTexture: Interface/AddOns/TipColor/TipColor.png
+## IconTexture: Interface/AddOns/ColorTip/ColorTip.png
 
-TipColor.lua
+ColorTip.lua

@@ -2,7 +2,7 @@
 
 ![screenshot](screenshot.png)
 
-- dynamic tooltip background color
+Thanks Slothpala (HealthBarColorTooltip)!
+
 - dynamic tooltip health bar color
-- dynamic faction icon replaces text
-- dynamic class color replaces text
+- dynamic tooltip border color
