@@ -1,4 +1,4 @@
-# 🏴‍☠️ TipColor
+# 🎨 TipColor
 
 ![screenshot](screenshot.png)
 
