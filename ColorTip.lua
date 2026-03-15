@@ -2,6 +2,10 @@
 -- Dynamic (class & reaction) tooltip border & tooltip healthbar color.
 
 local function ReactionColor(unit)
+    if UnitPlayerControlled("mouseover") then
+        local _, englishClass = UnitClass("mouseover")
+        return GetClassColor(englishClass)
+    end
     if UnitIsDead(unit) then
         return 0.7, 0.7, 0.7
     end
