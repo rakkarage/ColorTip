@@ -1,30 +1,26 @@
---[[
-Created by Slothpala
---]]
+-- ColorTip
+-- Dynamic (class & reaction) tooltip border & tooltip healthbar color.
 
-local function GetTooltipColor()
-    if UnitPlayerControlled("mouseover") then
-        local _, englishClass = UnitClass("mouseover")
-        return GetClassColor(englishClass)
+local function ReactionColor(unit)
+    if UnitIsDead(unit) then
+        return 0.7, 0.7, 0.7
     end
-
-    local reaction = UnitReaction("player", "mouseover")
+    local reaction = UnitReaction(unit, "player")
     if reaction then
         if reaction >= 5 then
-            return 0.2, 0.8, 0.2
+            return 0.3, 0.7, 0.3
         elseif reaction == 4 then
-            return 0.9, 0.9, 0
+            return 0.7, 0.7, 0.3
         else
-            return 0.9, 0.1, 0.1
+            return 0.7, 0.3, 0.3
         end
     end
-
-    return 1, 1, 1 -- fallback white
+    return 1.0, 1.0, 1.0
 end
 
 GameTooltip:HookScript("OnUpdate", function()
     if UnitExists("mouseover") then
-        local r, g, b = GetTooltipColor()
+        local r, g, b = ReactionColor("mouseover")
         GameTooltipStatusBarTexture:SetVertexColor(r, g, b)
         local ns = GameTooltip.NineSlice
         if ns then
