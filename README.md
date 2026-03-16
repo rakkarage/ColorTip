@@ -2,9 +2,16 @@
 
 ![screenshot](screenshot.png)
 
-Colors unit tooltip border and healthbar.
+Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
 
-- dynamic tooltip health bar color
-- dynamic tooltip border color
+Players:
+- tooltip name is class color
+- tooltip border is blend between faction reaction and class color
+- tooltip status bar is faction color
+
+Non Player Characters:
+- tooltip name is ALREADY reaction color
+- tooltip border is reaction color
+- tooltip status bar is reaction color
 
 Thanks Slothpala (HealthBarColorTooltip)!

@@ -2,7 +2,7 @@
 ## Version: v2026.3
 ## Title: ColorTip
 ## Category: User Interface
-## Notes: Dynamic (class & reaction) tooltip border & tooltip healthbar color.
+## Notes: Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
 ## Author: rakkarage
 ## IconTexture: Interface/AddOns/ColorTip/ColorTip.png
 

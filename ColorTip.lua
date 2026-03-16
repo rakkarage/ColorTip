@@ -1,7 +1,7 @@
 -- ColorTip
--- Dynamic (class & reaction) tooltip border & tooltip healthbar color.
+-- Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
 -- Players: name=class, healthbar=class, border top=reaction, sides=gradient, bottom=class
--- NPCs:    healthbar=reaction, border=uniform reaction
+-- NPCs: healthbar=reaction, border=uniform reaction
 
 local function ReactionColor(unit)
 	if UnitIsDead(unit) then return 0.7, 0.7, 0.7 end
