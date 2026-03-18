@@ -85,19 +85,19 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	if cr then GameTooltipTextLeft1:SetTextColor(cr, cg, cb) end
 end)
 
-local WHITE = CreateColor(1, 1, 1)
 GameTooltip:HookScript("OnHide", function()
-	lastR, lastG, lastB = nil, nil, nil -- clear so colors don't bleed into next tooltip
+	lastR, lastG, lastB = nil, nil, nil
 	GameTooltipTextLeft1:SetTextColor(1, 1, 1)
 	local ns = GameTooltip.NineSlice
 	if ns then
-		ns.TopEdge:SetVertexColor(1, 1, 1)
-		ns.TopLeftCorner:SetVertexColor(1, 1, 1)
-		ns.TopRightCorner:SetVertexColor(1, 1, 1)
-		ns.BottomEdge:SetVertexColor(1, 1, 1)
-		ns.BottomLeftCorner:SetVertexColor(1, 1, 1)
-		ns.BottomRightCorner:SetVertexColor(1, 1, 1)
-		ns.LeftEdge:SetGradient("VERTICAL", WHITE, WHITE)
-		ns.RightEdge:SetGradient("VERTICAL", WHITE, WHITE)
+		local pieces = {
+			"TopEdge", "TopLeftCorner", "TopRightCorner",
+			"BottomEdge", "BottomLeftCorner", "BottomRightCorner",
+			"LeftEdge", "RightEdge",
+		}
+		for _, key in ipairs(pieces) do
+			local piece = ns[key]
+			if piece then piece:SetVertexColor(1, 1, 1, 1) end
+		end
 	end
 end)
