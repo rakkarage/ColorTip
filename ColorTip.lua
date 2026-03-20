@@ -2,7 +2,6 @@
 -- Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
 -- Players: name=class, healthbar=class, border top=reaction, sides=gradient, bottom=class
 -- NPCs: healthbar=reaction, border=uniform reaction
-
 local function ReactionColor(unit)
 	if UnitIsDead(unit) then return 0.7, 0.7, 0.7 end
 	local reaction = UnitReaction(unit, "player")
@@ -55,10 +54,21 @@ GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
 	origSetStatusBarColor(self, r, g, b, a)
 end
 
+-- OnUpdate is now a lightweight fallback only for the camera-drag case where
+-- the mouseover token goes stale mid-hover. The primary snapshot happens in
+-- TooltipDataProcessor below, so we skip all work if lastR is already set.
 GameTooltip:HookScript("OnUpdate", function()
+	if lastR then return end
 	if not UnitExists("mouseover") then return end
+	-- Only act if this tooltip is actually showing a unit, not a reward/item UI
+	if not GameTooltip:IsShown() then return end
+	local unit = "mouseover"
+	-- Confirm the tooltip's own unit matches mouseover
+	local tipUnit = select(2, GameTooltip:GetUnit())
+	if not tipUnit then return end -- tooltip isn't showing a unit
 
-	-- Snapshot bar color while the token is still valid
+	-- Token still valid but lastR was nil (e.g. re-hover after camera drag).
+	-- Snapshot bar color and re-apply border.
 	local cr, cg, cb = ClassColor("mouseover")
 	if cr then
 		lastR, lastG, lastB = cr, cg, cb
@@ -66,7 +76,6 @@ GameTooltip:HookScript("OnUpdate", function()
 		lastR, lastG, lastB = ReactionColor("mouseover")
 	end
 
-	-- Border
 	local rr, rg, rb = ReactionColor("mouseover")
 	local ns = GameTooltip.NineSlice
 	if cr then
@@ -76,13 +85,35 @@ GameTooltip:HookScript("OnUpdate", function()
 	end
 end)
 
+GameTooltip:HookScript("OnShow", function()
+	lastR, lastG, lastB = nil, nil, nil
+end)
+
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	if tooltip ~= GameTooltip or not data then return end
+
+	-- Fix: reset cache at the start of each new tooltip so stale color from a
+	-- previous unit doesn't bleed in before OnUpdate gets a chance to refresh.
+	lastR, lastG, lastB = nil, nil, nil
+
 	local unit = data.unitToken
 	if not unit and UnitExists("mouseover") then unit = "mouseover" end
-	if not unit or not UnitIsPlayer(unit) then return end
+	if not unit then return end
+
+	-- Snapshot bar color now while the token is guaranteed valid, so OnUpdate
+	-- has nothing to do this frame and SetStatusBarColor is already primed.
 	local cr, cg, cb = ClassColor(unit)
-	if cr then GameTooltipTextLeft1:SetTextColor(cr, cg, cb) end
+	local rr, rg, rb = ReactionColor(unit)
+	local ns = GameTooltip.NineSlice
+
+	if cr then
+		lastR, lastG, lastB = cr, cg, cb
+		GameTooltipTextLeft1:SetTextColor(cr, cg, cb)
+		if ns then SetBorderAsymmetric(ns, rr, rg, rb, cr, cg, cb) end
+	else
+		lastR, lastG, lastB = rr, rg, rb
+		if ns then ns:SetBorderColor(rr, rg, rb) end
+	end
 end)
 
 GameTooltip:HookScript("OnHide", function()
