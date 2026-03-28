@@ -2,6 +2,7 @@
 -- Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
 -- Players: name=class, healthbar=class, border top=reaction, sides=gradient, bottom=class
 -- NPCs: healthbar=reaction, border=uniform reaction
+
 local function ReactionColor(unit)
 	if UnitIsDead(unit) then return 0.7, 0.7, 0.7 end
 	local reaction = UnitReaction(unit, "player")
@@ -44,6 +45,24 @@ end
 -- clears (e.g. camera drag), so we snapshot r,g,b instead of the unit name.
 local lastR, lastG, lastB = nil, nil, nil
 
+-- Reset tooltip colors to default (white) and clear cache.
+local function ResetTooltipColors()
+	lastR, lastG, lastB = nil, nil, nil
+	GameTooltipTextLeft1:SetTextColor(1, 1, 1)
+	local ns = GameTooltip.NineSlice
+	if ns then
+		local pieces = {
+			"TopEdge", "TopLeftCorner", "TopRightCorner",
+			"BottomEdge", "BottomLeftCorner", "BottomRightCorner",
+			"LeftEdge", "RightEdge",
+		}
+		for _, key in ipairs(pieces) do
+			local piece = ns[key]
+			if piece then piece:SetVertexColor(1, 1, 1, 1) end
+		end
+	end
+end
+
 -- Hook SetStatusBarColor so Blizzard's own pipeline can't overwrite our color.
 local origSetStatusBarColor = GameTooltipStatusBar.SetStatusBarColor
 GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
@@ -54,21 +73,29 @@ GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
 	origSetStatusBarColor(self, r, g, b, a)
 end
 
--- OnUpdate is now a lightweight fallback only for the camera-drag case where
--- the mouseover token goes stale mid-hover. The primary snapshot happens in
--- TooltipDataProcessor below, so we skip all work if lastR is already set.
+-- OnUpdate now resets colors when the tooltip no longer shows a unit.
 GameTooltip:HookScript("OnUpdate", function()
-	if lastR then return end
-	if not UnitExists("mouseover") then return end
-	-- Only act if this tooltip is actually showing a unit, not a reward/item UI
 	if not GameTooltip:IsShown() then return end
-	local unit = "mouseover"
-	-- Confirm the tooltip's own unit matches mouseover
 	local tipUnit = select(2, GameTooltip:GetUnit())
-	if not tipUnit then return end -- tooltip isn't showing a unit
+	if not tipUnit then
+		-- No unit in tooltip → if we have cached colors, reset them
+		if lastR then
+			ResetTooltipColors()
+		end
+		return
+	end
 
-	-- Token still valid but lastR was nil (e.g. re-hover after camera drag).
-	-- Snapshot bar color and re-apply border.
+	-- We have a unit in the tooltip
+	if lastR then
+		-- Already have cached colors, nothing to do
+		return
+	end
+
+	-- No cached colors; need to set them now (fallback for camera-drag case)
+	if not UnitExists("mouseover") then return end
+	-- Confirm the tooltip's own unit matches mouseover
+	if tipUnit ~= "mouseover" then return end
+
 	local cr, cg, cb = ClassColor("mouseover")
 	if cr then
 		lastR, lastG, lastB = cr, cg, cb
@@ -92,7 +119,7 @@ end)
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	if tooltip ~= GameTooltip or not data then return end
 
-	-- Fix: reset cache at the start of each new tooltip so stale color from a
+	-- Reset cache at the start of each new tooltip so stale color from a
 	-- previous unit doesn't bleed in before OnUpdate gets a chance to refresh.
 	lastR, lastG, lastB = nil, nil, nil
 
@@ -100,8 +127,7 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	if not unit and UnitExists("mouseover") then unit = "mouseover" end
 	if not unit then return end
 
-	-- Snapshot bar color now while the token is guaranteed valid, so OnUpdate
-	-- has nothing to do this frame and SetStatusBarColor is already primed.
+	-- Snapshot bar color now while the token is guaranteed valid.
 	local cr, cg, cb = ClassColor(unit)
 	local rr, rg, rb = ReactionColor(unit)
 	local ns = GameTooltip.NineSlice
@@ -117,18 +143,5 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 end)
 
 GameTooltip:HookScript("OnHide", function()
-	lastR, lastG, lastB = nil, nil, nil
-	GameTooltipTextLeft1:SetTextColor(1, 1, 1)
-	local ns = GameTooltip.NineSlice
-	if ns then
-		local pieces = {
-			"TopEdge", "TopLeftCorner", "TopRightCorner",
-			"BottomEdge", "BottomLeftCorner", "BottomRightCorner",
-			"LeftEdge", "RightEdge",
-		}
-		for _, key in ipairs(pieces) do
-			local piece = ns[key]
-			if piece then piece:SetVertexColor(1, 1, 1, 1) end
-		end
-	end
+	ResetTooltipColors()
 end)
