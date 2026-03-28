@@ -44,9 +44,11 @@ end
 local lastR, lastG, lastB = nil, nil, nil
 
 -- Reset tooltip colors to default (white) and clear cache.
-local function ResetTooltipColors()
+local function ResetTooltipColors(borderOnly)
 	lastR, lastG, lastB = nil, nil, nil
-	GameTooltipTextLeft1:SetTextColor(1, 1, 1)
+	if not borderOnly then
+		GameTooltipTextLeft1:SetTextColor(1, 1, 1)
+	end
 	local ns = GameTooltip.NineSlice
 	if ns then
 		local pieces = {
@@ -78,10 +80,10 @@ GameTooltip:HookScript("OnUpdate", function(self)
 	if not lastR then return end
 	local _, unit = self:GetUnit()
 	if not unit then
-		ResetTooltipColors()
-		return
+		ResetTooltipColors(true)
+	else
+		GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
 	end
-	GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
 end)
 
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
