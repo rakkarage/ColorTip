@@ -71,20 +71,6 @@ GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
 	origSetStatusBarColor(self, r, g, b, a)
 end
 
--- Reset colors whenever the tooltip is cleared (new content, hide, etc.)
--- This preserves colors during fade-out and ensures non-unit tooltips get defaults.
-hooksecurefunc(GameTooltip, "ClearLines", function()
-	if lastR then
-		ResetTooltipColors()
-	end
-end)
-
-GameTooltip:HookScript("OnShow", function()
-	-- Reset cache before a new tooltip appears; ClearLines will also handle,
-	-- but this ensures a clean state.
-	lastR, lastG, lastB = nil, nil, nil
-end)
-
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	if tooltip ~= GameTooltip or not data then return end
 
