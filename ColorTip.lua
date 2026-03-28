@@ -50,9 +50,8 @@ local function ResetTooltipColors()
 	local ns = GameTooltip.NineSlice
 	if ns then
 		local pieces = {
-			"TopEdge", "TopLeftCorner", "TopRightCorner",
-			"BottomEdge", "BottomLeftCorner", "BottomRightCorner",
-			"LeftEdge", "RightEdge",
+			"TopEdge", "TopRightCorner", "RightEdge", "BottomRightCorner",
+			"BottomEdge", "BottomLeftCorner", "LeftEdge", "TopLeftCorner",
 		}
 		for _, key in ipairs(pieces) do
 			local piece = ns[key]
