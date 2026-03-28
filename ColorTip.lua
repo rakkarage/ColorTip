@@ -41,8 +41,6 @@ local function SetBorderAsymmetric(ns, tr, tg, tb, br, bg, bb)
 end
 
 -- Cache the actual bar color computed while mouseover is valid.
--- "mouseover" is a dynamic token — UnitReaction/UnitClass return nil once it
--- clears (e.g. camera drag), so we snapshot r,g,b instead of the unit name.
 local lastR, lastG, lastB = nil, nil, nil
 
 -- Reset tooltip colors to default (white) and clear cache.
@@ -73,54 +71,24 @@ GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
 	origSetStatusBarColor(self, r, g, b, a)
 end
 
--- OnUpdate now resets colors when the tooltip no longer shows a unit.
-GameTooltip:HookScript("OnUpdate", function()
-	if not GameTooltip:IsShown() then return end
-	local tipUnit = select(2, GameTooltip:GetUnit())
-	if not tipUnit then
-		-- No unit in tooltip → if we have cached colors, reset them
-		if lastR then
-			ResetTooltipColors()
-		end
-		return
-	end
-
-	-- We have a unit in the tooltip
+-- Reset colors whenever the tooltip is cleared (new content, hide, etc.)
+-- This preserves colors during fade-out and ensures non-unit tooltips get defaults.
+hooksecurefunc(GameTooltip, "ClearLines", function()
 	if lastR then
-		-- Already have cached colors, nothing to do
-		return
-	end
-
-	-- No cached colors; need to set them now (fallback for camera-drag case)
-	if not UnitExists("mouseover") then return end
-	-- Confirm the tooltip's own unit matches mouseover
-	if tipUnit ~= "mouseover" then return end
-
-	local cr, cg, cb = ClassColor("mouseover")
-	if cr then
-		lastR, lastG, lastB = cr, cg, cb
-	else
-		lastR, lastG, lastB = ReactionColor("mouseover")
-	end
-
-	local rr, rg, rb = ReactionColor("mouseover")
-	local ns = GameTooltip.NineSlice
-	if cr then
-		if ns then SetBorderAsymmetric(ns, rr, rg, rb, cr, cg, cb) end
-	else
-		if ns then ns:SetBorderColor(rr, rg, rb) end
+		ResetTooltipColors()
 	end
 end)
 
 GameTooltip:HookScript("OnShow", function()
+	-- Reset cache before a new tooltip appears; ClearLines will also handle,
+	-- but this ensures a clean state.
 	lastR, lastG, lastB = nil, nil, nil
 end)
 
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	if tooltip ~= GameTooltip or not data then return end
 
-	-- Reset cache at the start of each new tooltip so stale color from a
-	-- previous unit doesn't bleed in before OnUpdate gets a chance to refresh.
+	-- Reset cache at the start of each new unit tooltip.
 	lastR, lastG, lastB = nil, nil, nil
 
 	local unit = data.unitToken
