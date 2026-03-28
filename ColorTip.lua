@@ -71,17 +71,27 @@ GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
 	origSetStatusBarColor(self, r, g, b, a)
 end
 
+GameTooltip:HookScript("OnShow", function()
+	lastR, lastG, lastB = nil, nil, nil
+end)
+
+GameTooltip:HookScript("OnUpdate", function(self)
+	if not lastR then return end
+	local _, unit = self:GetUnit()
+	if not unit then
+		ResetTooltipColors()
+		return
+	end
+	GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
+end)
+
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	if tooltip ~= GameTooltip or not data then return end
-
-	-- Reset cache at the start of each new unit tooltip.
-	lastR, lastG, lastB = nil, nil, nil
 
 	local unit = data.unitToken
 	if not unit and UnitExists("mouseover") then unit = "mouseover" end
 	if not unit then return end
 
-	-- Snapshot bar color now while the token is guaranteed valid.
 	local cr, cg, cb = ClassColor(unit)
 	local rr, rg, rb = ReactionColor(unit)
 	local ns = GameTooltip.NineSlice
