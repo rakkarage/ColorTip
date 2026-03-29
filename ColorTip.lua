@@ -39,15 +39,12 @@ local function SetBorderAsymmetric(ns, tr, tg, tb, br, bg, bb)
 	ns.RightEdge:SetGradient("VERTICAL", CreateColor(br, bg, bb), CreateColor(tr, tg, tb))
 end
 
--- Cache the actual bar color computed while mouseover is valid.
+local isUnitTooltip = false
 local lastR, lastG, lastB = nil, nil, nil
 
--- Reset tooltip colors to default (white) and clear cache.
-local function ResetTooltipColors(borderOnly)
+local function ResetTooltipColors()
 	lastR, lastG, lastB = nil, nil, nil
-	if not borderOnly then
-		GameTooltipTextLeft1:SetTextColor(1, 1, 1)
-	end
+	GameTooltipTextLeft1:SetTextColor(1, 1, 1)
 	local ns = GameTooltip.NineSlice
 	if ns then
 		local pieces = {
@@ -61,28 +58,31 @@ local function ResetTooltipColors(borderOnly)
 	end
 end
 
--- Hook SetStatusBarColor so Blizzard's own pipeline can't overwrite our color.
 local origSetStatusBarColor = GameTooltipStatusBar.SetStatusBarColor
 GameTooltipStatusBar.SetStatusBarColor = function(self, r, g, b, a)
-	if lastR then
+	if lastR and isUnitTooltip then
 		origSetStatusBarColor(self, lastR, lastG, lastB, a)
 		return
 	end
 	origSetStatusBarColor(self, r, g, b, a)
 end
 
-GameTooltip:HookScript("OnShow", function()
-	lastR, lastG, lastB = nil, nil, nil
+GameTooltip:HookScript("OnShow", function(self)
+	if not isUnitTooltip then
+		ResetTooltipColors()
+	end
 end)
 
 GameTooltip:HookScript("OnUpdate", function(self)
 	if not lastR then return end
 	local _, unit = self:GetUnit()
-	if not unit then
-		ResetTooltipColors(true)
-	else
-		GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
-	end
+	if not unit then return end
+	GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
+end)
+
+GameTooltip:HookScript("OnHide", function()
+	isUnitTooltip = false
+	ResetTooltipColors()
 end)
 
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
@@ -91,6 +91,7 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	local unit = data.unitToken
 	if not unit and UnitExists("mouseover") then unit = "mouseover" end
 	if not unit then return end
+	isUnitTooltip = true
 
 	local cr, cg, cb = ClassColor(unit)
 	local rr, rg, rb = ReactionColor(unit)
@@ -106,6 +107,15 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	end
 end)
 
-GameTooltip:HookScript("OnHide", function()
-	ResetTooltipColors()
-end)
+local function ResetIfNotUnit(tooltip)
+	if tooltip ~= GameTooltip then return end
+	if isUnitTooltip then
+		isUnitTooltip = false
+		ResetTooltipColors()
+	end
+end
+
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, ResetIfNotUnit)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, ResetIfNotUnit)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Action, ResetIfNotUnit)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Object, ResetIfNotUnit)
