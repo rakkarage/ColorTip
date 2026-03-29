@@ -4,7 +4,6 @@
 -- NPCs: healthbar=reaction, border=uniform reaction
 
 local function ReactionColor(unit)
-	if UnitIsDead(unit) then return 0.7, 0.7, 0.7 end
 	local reaction = UnitReaction(unit, "player")
 	if reaction then
 		if reaction >= 5 then
