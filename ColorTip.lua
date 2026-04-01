@@ -63,6 +63,7 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	if not unit then return end
 	if not UnitIsPlayer(unit) then
 		lastR, lastG, lastB = ReactionColor(unit)
+		if lastR then GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB) end
 	end
 end)
 
