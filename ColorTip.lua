@@ -40,6 +40,17 @@ local function ResetIfNotUnit(tooltip)
 	ResetBorderAndBar()
 end
 
+local function GetFactionLine(unit)
+	local faction = UnitFactionGroup(unit)
+	if not faction then return end
+	for i = 1, 6 do
+		local t = _G["GameTooltipTextLeft" .. i]
+		if t and t:GetText() == faction then
+			return t
+		end
+	end
+end
+
 GameTooltip:HookScript("OnUpdate", function()
 	local ns = GameTooltip.NineSlice
 	if UnitIsPlayer("mouseover") then
@@ -47,6 +58,8 @@ GameTooltip:HookScript("OnUpdate", function()
 		if class then lastR, lastG, lastB = GetClassColor(class) end
 		local rr, rg, rb = ReactionColor("mouseover")
 		GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
+		local factionLine = GetFactionLine("mouseover")
+		if rr and factionLine then factionLine:SetTextColor(rr, rg, rb) end
 		if rr and ns then GradientBorder(ns, rr, rg, rb, lastR, lastG, lastB) end
 		GameTooltipStatusBarTexture:SetVertexColor(lastR, lastG, lastB)
 	else
