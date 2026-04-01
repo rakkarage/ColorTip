@@ -32,7 +32,10 @@ end
 
 local function Reset()
 	ResetBorderAndBar()
-	GameTooltipTextLeft1:SetTextColor(1, 1, 1)
+	for i = 1, 6 do
+		local t = _G["GameTooltipTextLeft" .. i]
+		if t then t:SetTextColor(1, 1, 1) end
+	end
 end
 
 local function ResetIfNotUnit(tooltip)
@@ -40,14 +43,26 @@ local function ResetIfNotUnit(tooltip)
 	ResetBorderAndBar()
 end
 
+local function GetClassLine(unit)
+	local _, class = UnitClass(unit)
+	if not class then return end
+	local localizedClass = LOCALIZED_CLASS_NAMES_MALE[class] or LOCALIZED_CLASS_NAMES_FEMALE[class]
+	if not localizedClass then return end
+	for i = 1, 6 do
+		local t = _G["GameTooltipTextLeft" .. i]
+		if t then
+			local text = t:GetText()
+			if text and text:find(localizedClass) then return t end
+		end
+	end
+end
+
 local function GetFactionLine(unit)
 	local faction = UnitFactionGroup(unit)
 	if not faction then return end
 	for i = 1, 6 do
 		local t = _G["GameTooltipTextLeft" .. i]
-		if t and t:GetText() == faction then
-			return t
-		end
+		if t and t:GetText() == faction then return t end
 	end
 end
 
@@ -57,8 +72,10 @@ GameTooltip:HookScript("OnUpdate", function()
 		local _, class = UnitClass("mouseover")
 		if class then lastR, lastG, lastB = GetClassColor(class) end
 		local rr, rg, rb = ReactionColor("mouseover")
-		GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
+		local classLine = GetClassLine("mouseover")
 		local factionLine = GetFactionLine("mouseover")
+		GameTooltipTextLeft1:SetTextColor(rr, rg, rb)
+		if classLine then classLine:SetTextColor(lastR, lastG, lastB) end
 		if rr and factionLine then factionLine:SetTextColor(rr, rg, rb) end
 		if rr and ns then GradientBorder(ns, rr, rg, rb, lastR, lastG, lastB) end
 		GameTooltipStatusBarTexture:SetVertexColor(lastR, lastG, lastB)
