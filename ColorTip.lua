@@ -3,7 +3,6 @@ ColorTip
 --]]
 
 local lastR, lastG, lastB = 1, 1, 1
-local isPlayer = false
 
 local function ReactionColor(unit)
 	local reaction = UnitReaction(unit, "player")
@@ -26,7 +25,6 @@ end
 
 local function ResetBorderAndBar()
 	lastR, lastG, lastB = 1, 1, 1
-	isPlayer = false
 	local ns = GameTooltip.NineSlice
 	if ns then ns:SetBorderColor(1, 1, 1) end
 	GameTooltipStatusBarTexture:SetVertexColor(1, 1, 1)
@@ -45,14 +43,13 @@ end
 GameTooltip:HookScript("OnUpdate", function()
 	local ns = GameTooltip.NineSlice
 	if UnitIsPlayer("mouseover") then
-		isPlayer = true
 		local _, class = UnitClass("mouseover")
 		if class then lastR, lastG, lastB = GetClassColor(class) end
 		local rr, rg, rb = ReactionColor("mouseover")
 		GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB)
 		if rr and ns then GradientBorder(ns, rr, rg, rb, lastR, lastG, lastB) end
 		GameTooltipStatusBarTexture:SetVertexColor(lastR, lastG, lastB)
-	elseif not isPlayer then
+	else
 		if ns then ns:SetBorderColor(lastR, lastG, lastB) end
 		GameTooltipStatusBarTexture:SetVertexColor(lastR, lastG, lastB)
 	end
@@ -65,7 +62,6 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	local unit = (data and data.unitToken) or (UnitExists("mouseover") and "mouseover") or nil
 	if not unit then return end
 	if not UnitIsPlayer(unit) then
-		isPlayer = false
 		lastR, lastG, lastB = ReactionColor(unit)
 	end
 end)
