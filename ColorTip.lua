@@ -56,7 +56,9 @@ local function GetClassLine(unit)
 		local t = _G["GameTooltipTextLeft" .. i]
 		if t then
 			local text = t:GetText()
-			if text and string.find(text, localizedClass) then return t end
+			if text and not issecretvalue(text) and string.find(text, localizedClass) then
+				return t
+			end
 		end
 	end
 end
@@ -68,7 +70,9 @@ local function GetFactionLine(unit)
 		local t = _G["GameTooltipTextLeft" .. i]
 		if t then
 			local text = t:GetText()
-			if text and text == faction then return t end
+			if text and not issecretvalue(text) and text == faction then
+				return t
+			end
 		end
 	end
 end
