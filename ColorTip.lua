@@ -4,6 +4,7 @@ ColorTip
 
 local lastR, lastG, lastB = 1, 1, 1
 local lastRR, lastRG, lastRB = nil, nil, nil
+local cachedUnit = nil
 local classLine = nil
 local factionLine = nil
 
@@ -29,6 +30,7 @@ end
 local function ResetBorderAndBar()
 	lastR, lastG, lastB = 1, 1, 1
 	lastRR, lastRG, lastRB = nil, nil, nil
+	cachedUnit = nil
 	classLine = nil
 	factionLine = nil
 	local ns = GameTooltip.NineSlice
@@ -81,8 +83,8 @@ end
 
 GameTooltip:HookScript("OnUpdate", function()
 	local ns = GameTooltip.NineSlice
-	if UnitIsPlayer("mouseover") then
-		local _, class = UnitClass("mouseover")
+	if cachedUnit and UnitIsPlayer(cachedUnit) then
+		local _, class = UnitClass(cachedUnit)
 		if class then lastR, lastG, lastB = GetClassColor(class) end
 		if lastRR then
 			GameTooltipTextLeft1:SetTextColor(lastRR, lastRG, lastRB)
@@ -106,6 +108,7 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	if tooltip ~= GameTooltip then return end
 	local unit = (data and data.unitToken) or (UnitExists("mouseover") and "mouseover") or nil
 	if not unit then return end
+	cachedUnit = unit
 	if UnitIsPlayer(unit) then
 		classLine = GetClassLine(unit)
 		factionLine = GetFactionLine(unit)
