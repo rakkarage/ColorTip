@@ -3,6 +3,7 @@ ColorTip
 --]]
 
 local lastR, lastG, lastB = 1, 1, 1
+local lastRR, lastRG, lastRB = nil, nil, nil
 local classLine = nil
 local factionLine = nil
 
@@ -27,6 +28,7 @@ end
 
 local function ResetBorderAndBar()
 	lastR, lastG, lastB = 1, 1, 1
+	lastRR, lastRG, lastRB = nil, nil, nil
 	classLine = nil
 	factionLine = nil
 	local ns = GameTooltip.NineSlice
@@ -82,22 +84,24 @@ GameTooltip:HookScript("OnUpdate", function()
 	if UnitIsPlayer("mouseover") then
 		local _, class = UnitClass("mouseover")
 		if class then lastR, lastG, lastB = GetClassColor(class) end
-		local rr, rg, rb = ReactionColor("mouseover")
-		if rr then
-			GameTooltipTextLeft1:SetTextColor(rr, rg, rb)
+		if lastRR then
+			GameTooltipTextLeft1:SetTextColor(lastRR, lastRG, lastRB)
 			if classLine then classLine:SetTextColor(lastR, lastG, lastB) end
-			if factionLine then factionLine:SetTextColor(rr, rg, rb) end
-			if ns then GradientBorder(ns, rr, rg, rb, lastR, lastG, lastB) end
+			if factionLine then factionLine:SetTextColor(lastRR, lastRG, lastRB) end
+			if ns then GradientBorder(ns, lastRR, lastRG, lastRB, lastR, lastG, lastB) end
 		end
 		GameTooltipStatusBarTexture:SetVertexColor(lastR, lastG, lastB)
 	else
-		if ns then ns:SetBorderColor(lastR, lastG, lastB) end
+		if lastRR and ns then
+			GradientBorder(ns, lastRR, lastRG, lastRB, lastR, lastG, lastB)
+		elseif ns then
+			ns:SetBorderColor(lastR, lastG, lastB)
+		end
 		GameTooltipStatusBarTexture:SetVertexColor(lastR, lastG, lastB)
 	end
 end)
 
 GameTooltip:HookScript("OnHide", Reset)
-
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	if tooltip ~= GameTooltip then return end
 	local unit = (data and data.unitToken) or (UnitExists("mouseover") and "mouseover") or nil
@@ -105,9 +109,11 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	if UnitIsPlayer(unit) then
 		classLine = GetClassLine(unit)
 		factionLine = GetFactionLine(unit)
+		lastRR, lastRG, lastRB = ReactionColor(unit)
 	else
 		classLine = nil
 		factionLine = nil
+		lastRR, lastRG, lastRB = nil, nil, nil
 		lastR, lastG, lastB = ReactionColor(unit)
 		if lastR then GameTooltipTextLeft1:SetTextColor(lastR, lastG, lastB) end
 	end
