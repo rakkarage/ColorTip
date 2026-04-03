@@ -52,15 +52,15 @@ local function ResetIfNotUnit(tooltip)
 end
 
 local function GetClassLine(unit)
-	local _, class = UnitClass(unit)
+	local _, classId = UnitClass(unit)
+	if not classId then return end
+	local class = LOCALIZED_CLASS_NAMES_MALE[classId] or LOCALIZED_CLASS_NAMES_FEMALE[classId]
 	if not class then return end
-	local localizedClass = LOCALIZED_CLASS_NAMES_MALE[class] or LOCALIZED_CLASS_NAMES_FEMALE[class]
-	if not localizedClass then return end
 	for i = 1, 6 do
 		local t = _G["GameTooltipTextLeft" .. i]
 		if t then
 			local text = t:GetText()
-			if text and not issecretvalue(text) and string.find(text, localizedClass) then
+			if text and not issecretvalue(text) and string.find(text, class) then
 				return t
 			end
 		end
@@ -84,8 +84,8 @@ end
 GameTooltip:HookScript("OnUpdate", function()
 	local ns = GameTooltip.NineSlice
 	if cachedUnit and UnitIsPlayer(cachedUnit) then
-		local _, class = UnitClass(cachedUnit)
-		if class then lastR, lastG, lastB = GetClassColor(class) end
+		local _, classId = UnitClass(cachedUnit)
+		if classId then lastR, lastG, lastB = GetClassColor(classId) end
 		if lastRR then
 			GameTooltipTextLeft1:SetTextColor(lastRR, lastRG, lastRB)
 			if classLine then classLine:SetTextColor(lastR, lastG, lastB) end
