@@ -31,7 +31,8 @@ local function UpdateTooltipColors(tooltip)
 
 			local class = classId and (LOCALIZED_CLASS_NAMES_MALE[classId] or LOCALIZED_CLASS_NAMES_FEMALE[classId])
 			local faction = UnitFactionGroup(unit)
-			local myGuild = GetGuildInfo("player")
+			local playerGuild = GetGuildInfo("player")
+			local unitGuild = GetGuildInfo(unit)
 
 			for i = 2, 6 do
 				local line = _G["GameTooltipTextLeft" .. i]
@@ -42,8 +43,12 @@ local function UpdateTooltipColors(tooltip)
 							line:SetTextColor(lastR, lastG, lastB)
 						elseif faction and text == faction then
 							line:SetTextColor(lastRR or lastR, lastRG or lastG, lastRB or lastB)
-						elseif myGuild and text:find(myGuild, 1, true) then
-							line:SetTextColor(1, 0.85, 0.1)
+						elseif unitGuild and text:find(unitGuild, 1, true) then
+							if playerGuild and unitGuild == playerGuild then
+								line:SetTextColor(1, 0.85, 0.1)
+							else
+								line:SetTextColor(0.75, 0.6, 0.15)
+							end
 						end
 					end
 				end
