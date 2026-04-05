@@ -1,6 +1,5 @@
 --[[
 ColorTip
-Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
 --]]
 
 local lastR, lastG, lastB = 1, 1, 1
