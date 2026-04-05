@@ -12,7 +12,6 @@ local function GetReactionColor(unit)
 		local c = FACTION_BAR_COLORS[reaction]
 		if c then return c.r, c.g, c.b end
 	end
-	return 1, 1, 1
 end
 
 local function UpdateTooltipColors(tooltip)
@@ -30,7 +29,7 @@ local function UpdateTooltipColors(tooltip)
 			if classId then lastR, lastG, lastB = GetClassColor(classId) end
 			lastRR, lastRG, lastRB = GetReactionColor(unit)
 
-			local class = LOCALIZED_CLASS_NAMES_MALE[classId] or LOCALIZED_CLASS_NAMES_FEMALE[classId]
+			local class = classId and (LOCALIZED_CLASS_NAMES_MALE[classId] or LOCALIZED_CLASS_NAMES_FEMALE[classId])
 			local faction = UnitFactionGroup(unit)
 			local myGuild = GetGuildInfo("player")
 
@@ -42,8 +41,8 @@ local function UpdateTooltipColors(tooltip)
 						if class and text:find(class, 1, true) then
 							line:SetTextColor(lastR, lastG, lastB)
 						elseif faction and text == faction then
-							line:SetTextColor(lastRR, lastRG, lastRB)
-						elseif myGuild and text == myGuild then
+							line:SetTextColor(lastRR or lastR, lastRG or lastG, lastRB or lastB)
+						elseif myGuild and text:find(myGuild, 1, true) then
 							line:SetTextColor(1, 0.85, 0.1)
 						end
 					end
@@ -99,5 +98,6 @@ GameTooltip:HookScript("OnUpdate", UpdateTooltipColors)
 
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, ForceReset)
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, ForceReset)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Action, ForceReset)
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Object, ForceReset)
 GameTooltip:HookScript("OnHide", ForceReset)
