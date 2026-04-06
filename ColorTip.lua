@@ -1,5 +1,8 @@
 -- ColorTip: Colors tooltips by unit type and class
 
+local COLOR_ALLIED_GUILD = { r = 1, g = 0.85, b = 0.1 }   -- Player's own guild
+local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 } -- Other guilds
+
 local lastR, lastG, lastB = 1, 1, 1
 local lastRR, lastRG, lastRB = nil, nil, nil
 
@@ -31,6 +34,9 @@ local function UpdateTooltipColors(tooltip)
 			local playerGuild = GetGuildInfo("player")
 			local unitGuild = GetGuildInfo(unit)
 
+			-- Color player info lines (class, faction, guild) in tooltips.
+			-- NOTE: Only processes lines 2-6 which typically contain secondary info.
+			-- Lines outside this range are not recolored, by design.
 			for i = 2, 6 do
 				local line = _G["GameTooltipTextLeft" .. i]
 				if line then
@@ -42,9 +48,9 @@ local function UpdateTooltipColors(tooltip)
 							line:SetTextColor(lastRR or lastR, lastRG or lastG, lastRB or lastB)
 						elseif unitGuild and text:find(unitGuild, 1, true) then
 							if playerGuild and unitGuild == playerGuild then
-								line:SetTextColor(1, 0.85, 0.1)
+								line:SetTextColor(COLOR_ALLIED_GUILD.r, COLOR_ALLIED_GUILD.g, COLOR_ALLIED_GUILD.b)
 							else
-								line:SetTextColor(0.75, 0.6, 0.15)
+								line:SetTextColor(COLOR_OTHER_GUILD.r, COLOR_OTHER_GUILD.g, COLOR_OTHER_GUILD.b)
 							end
 						end
 					end
