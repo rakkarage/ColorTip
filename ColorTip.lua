@@ -1,6 +1,4 @@
---[[
-ColorTip
---]]
+-- ColorTip: Colors tooltips by unit type and class
 
 local lastR, lastG, lastB = 1, 1, 1
 local lastRR, lastRG, lastRB = nil, nil, nil
