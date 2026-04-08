@@ -1,9 +1,9 @@
-## Interface: 120001
-## Version: v2026.4
 ## Title: ColorTip
-## Category: User Interface
 ## Notes: Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
+## Category: User Interface
 ## Author: rakkarage
 ## IconTexture: Interface/AddOns/ColorTip/ColorTip.png
+## Interface: 120001
+## Version: v2026.4
 
 ColorTip.lua
