@@ -2,7 +2,7 @@
 
 ![screenshot](screenshot.png)
 
-Dynamic (class & reaction) tooltip border, tooltip status bar & tooltip name color.
+Dynamic (class & reaction) tooltip name, border, and status bar.
 
 Players:
 
