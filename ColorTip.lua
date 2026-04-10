@@ -1,4 +1,4 @@
--- ColorTip: Colors tooltips by unit type and class
+-- 🎨 ColorTip: Colors tooltips by unit type and class
 
 local COLOR_ALLIED_GUILD = { r = 1, g = 0.85, b = 0.1 }   -- Player's own guild
 local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 } -- Other guilds
@@ -58,7 +58,12 @@ local function UpdateTooltipColors(tooltip)
 			end
 		else
 			lastRR, lastRG, lastRB = nil, nil, nil
-			lastR, lastG, lastB = GetReactionColor(unit)
+			local r, g, b = GetReactionColor(unit)
+			if r then
+				lastR, lastG, lastB = r, g, b
+			else
+				lastR, lastG, lastB = 1, 1, 1
+			end
 		end
 	end
 
