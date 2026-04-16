@@ -1,3 +1,5 @@
+-- 🎨 ColorTip: Dynamic (class & reaction) tooltip name, border, and status bar.
+
 local _, ns = ...
 
 ns.ColorTip = {}
