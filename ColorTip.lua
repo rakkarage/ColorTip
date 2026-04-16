@@ -11,7 +11,7 @@ local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 }
 ColorTip.lastR, ColorTip.lastG, ColorTip.lastB = 1, 1, 1
 ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB = nil, nil, nil
 
-local function GetReactionColor(unit)
+function GetReactionColor(unit)
 	local reaction = UnitReaction(unit, "player")
 	if reaction then
 		local c = FACTION_BAR_COLORS[reaction]
@@ -19,7 +19,7 @@ local function GetReactionColor(unit)
 	end
 end
 
-local function UpdateTooltipColors(tooltip)
+function ColorTip:UpdateTooltipColors(tooltip)
 	if tooltip ~= GameTooltip then return end
 
 	local _, unit = tooltip:GetUnit()
@@ -96,7 +96,7 @@ local function UpdateTooltipColors(tooltip)
 	end
 end
 
-local function ForceReset(tooltip)
+function ColorTip:ForceReset(tooltip)
 	if tooltip ~= GameTooltip then return end
 	ColorTip.lastR, ColorTip.lastG, ColorTip.lastB = 1, 1, 1
 	ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB = nil, nil, nil
@@ -108,11 +108,10 @@ local function ForceReset(tooltip)
 	end
 end
 
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, UpdateTooltipColors)
-GameTooltip:HookScript("OnUpdate", UpdateTooltipColors)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(...) ColorTip:UpdateTooltipColors(...) end)
+GameTooltip:HookScript("OnUpdate", function(...) ColorTip:UpdateTooltipColors(...) end)
 
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, ForceReset)
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, ForceReset)
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Action, ForceReset)
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Object, ForceReset)
-GameTooltip:HookScript("OnHide", ForceReset)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(...) ColorTip:ForceReset(...) end)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, function(...) ColorTip:ForceReset(...) end)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Action, function(...) ColorTip:ForceReset(...) end)
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Object, function(...) ColorTip:ForceReset(...) end)
