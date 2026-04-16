@@ -31,8 +31,8 @@ function ColorTip:UpdateTooltipColors(tooltip)
 	if isUnit then
 		if UnitIsPlayer(unit) then
 			local _, classId = UnitClass(unit)
-			if classId then ColorTip.lastR, ColorTip.lastG, ColorTip.lastB = GetClassColor(classId) end
-			ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB = GetReactionColor(unit)
+			if classId then self.lastR, self.lastG, self.lastB = GetClassColor(classId) end
+			self.lastRR, self.lastRG, self.lastRB = GetReactionColor(unit)
 
 			local class = classId and (LOCALIZED_CLASS_NAMES_MALE[classId] or LOCALIZED_CLASS_NAMES_FEMALE[classId])
 			local faction = UnitFactionGroup(unit)
@@ -45,9 +45,9 @@ function ColorTip:UpdateTooltipColors(tooltip)
 					local text = line:GetText()
 					if text and not issecretvalue(text) then
 						if class and text:find(class, 1, true) then
-							line:SetTextColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB)
+							line:SetTextColor(self.lastR, self.lastG, self.lastB)
 						elseif faction and text == faction then
-							line:SetTextColor(ColorTip.lastRR or ColorTip.lastR, ColorTip.lastRG or ColorTip.lastG, ColorTip.lastRB or ColorTip.lastB)
+							line:SetTextColor(self.lastRR or self.lastR, self.lastRG or self.lastG, self.lastRB or self.lastB)
 						elseif unitGuild and text:find(unitGuild, 1, true) then
 							if playerGuild and unitGuild == playerGuild then
 								line:SetTextColor(COLOR_ALLIED_GUILD.r, COLOR_ALLIED_GUILD.g, COLOR_ALLIED_GUILD.b)
@@ -59,47 +59,47 @@ function ColorTip:UpdateTooltipColors(tooltip)
 				end
 			end
 		else
-			ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB = nil, nil, nil
+			self.lastRR, self.lastRG, self.lastRB = nil, nil, nil
 			local r, g, b = GetReactionColor(unit)
 			if r then
-				ColorTip.lastR, ColorTip.lastG, ColorTip.lastB = r, g, b
+				self.lastR, self.lastG, self.lastB = r, g, b
 			else
-				ColorTip.lastR, ColorTip.lastG, ColorTip.lastB = 1, 1, 1
+				self.lastR, self.lastG, self.lastB = 1, 1, 1
 			end
 		end
 	end
 
-	local isFading = tooltip:GetAlpha() > 0 and (ColorTip.lastRR or (ColorTip.lastR ~= 1 or ColorTip.lastG ~= 1 or ColorTip.lastB ~= 1))
+	local isFading = tooltip:GetAlpha() > 0 and (self.lastRR or (self.lastR ~= 1 or self.lastG ~= 1 or self.lastB ~= 1))
 
 	if isUnit or isFading then
 		if border then
-			if ColorTip.lastRR then
-				border.TopEdge:SetVertexColor(ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB)
-				border.TopLeftCorner:SetVertexColor(ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB)
-				border.TopRightCorner:SetVertexColor(ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB)
-				border.BottomEdge:SetVertexColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB)
-				border.BottomLeftCorner:SetVertexColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB)
-				border.BottomRightCorner:SetVertexColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB)
-				border.LeftEdge:SetGradient("VERTICAL", CreateColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB), CreateColor(ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB))
-				border.RightEdge:SetGradient("VERTICAL", CreateColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB), CreateColor(ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB))
+			if self.lastRR then
+				border.TopEdge:SetVertexColor(self.lastRR, self.lastRG, self.lastRB)
+				border.TopLeftCorner:SetVertexColor(self.lastRR, self.lastRG, self.lastRB)
+				border.TopRightCorner:SetVertexColor(self.lastRR, self.lastRG, self.lastRB)
+				border.BottomEdge:SetVertexColor(self.lastR, self.lastG, self.lastB)
+				border.BottomLeftCorner:SetVertexColor(self.lastR, self.lastG, self.lastB)
+				border.BottomRightCorner:SetVertexColor(self.lastR, self.lastG, self.lastB)
+				border.LeftEdge:SetGradient("VERTICAL", CreateColor(self.lastR, self.lastG, self.lastB), CreateColor(self.lastRR, self.lastRG, self.lastRB))
+				border.RightEdge:SetGradient("VERTICAL", CreateColor(self.lastR, self.lastG, self.lastB), CreateColor(self.lastRR, self.lastRG, self.lastRB))
 			else
-				border:SetBorderColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB)
+				border:SetBorderColor(self.lastR, self.lastG, self.lastB)
 			end
 		end
 
-		GameTooltipTextLeft1:SetTextColor(ColorTip.lastRR or ColorTip.lastR, ColorTip.lastRG or ColorTip.lastG, ColorTip.lastRB or ColorTip.lastB)
+		GameTooltipTextLeft1:SetTextColor(self.lastRR or self.lastR, self.lastRG or self.lastG, self.lastRB or self.lastB)
 
 		if GameTooltipStatusBar then
 			local tex = GameTooltipStatusBar:GetStatusBarTexture()
-			if tex then tex:SetVertexColor(ColorTip.lastR, ColorTip.lastG, ColorTip.lastB) end
+			if tex then tex:SetVertexColor(self.lastR, self.lastG, self.lastB) end
 		end
 	end
 end
 
 function ColorTip:ForceReset(tooltip)
 	if tooltip ~= GameTooltip then return end
-	ColorTip.lastR, ColorTip.lastG, ColorTip.lastB = 1, 1, 1
-	ColorTip.lastRR, ColorTip.lastRG, ColorTip.lastRB = nil, nil, nil
+	self.lastR, self.lastG, self.lastB = 1, 1, 1
+	self.lastRR, self.lastRG, self.lastRB = nil, nil, nil
 	local border = tooltip.NineSlice
 	if border then border:SetBorderColor(1, 1, 1) end
 	if GameTooltipStatusBar then
