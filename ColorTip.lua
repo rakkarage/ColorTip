@@ -1,7 +1,7 @@
 -- 🎨 ColorTip: Dynamic (class & reaction) tooltip name, border, and status bar.
 
-local lastColorR, lastColorG, lastColorB = 1, 1, 1
-local lastReactionR, lastReactionG, lastReactionB = nil, nil, nil
+local _lastColorR, _lastColorG, _lastColorB = 1, 1, 1
+local _lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
 
 local COLOR_ALLIED_GUILD = { r = 1, g = 0.85, b = 0.1 }
 local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 }
@@ -40,10 +40,10 @@ end
 local function RepaintColors(tooltip)
 	if tooltip ~= GameTooltip then return end
 	local border = tooltip.NineSlice
-	local hasCustomColors = tooltip:GetAlpha() > 0 and (lastReactionR or (lastColorR ~= 1 or lastColorG ~= 1 or lastColorB ~= 1))
+	local hasCustomColors = tooltip:GetAlpha() > 0 and (_lastReactionR or (_lastColorR ~= 1 or _lastColorG ~= 1 or _lastColorB ~= 1))
 	if not hasCustomColors then return end
-	SetTooltipBorderColors(border, lastColorR, lastColorG, lastColorB, lastReactionR, lastReactionG, lastReactionB)
-	SetTooltipStatusBarColor(lastColorR, lastColorG, lastColorB)
+	SetTooltipBorderColors(border, _lastColorR, _lastColorG, _lastColorB, _lastReactionR, _lastReactionG, _lastReactionB)
+	SetTooltipStatusBarColor(_lastColorR, _lastColorG, _lastColorB)
 end
 
 local function ApplyColors(tooltip, unit)
@@ -52,8 +52,8 @@ local function ApplyColors(tooltip, unit)
 
 	if UnitIsPlayer(unit) then
 		local _, classId = UnitClass(unit)
-		if classId then lastColorR, lastColorG, lastColorB = GetClassColor(classId) end
-		lastReactionR, lastReactionG, lastReactionB = GetReactionColor(unit)
+		if classId then _lastColorR, _lastColorG, _lastColorB = GetClassColor(classId) end
+		_lastReactionR, _lastReactionG, _lastReactionB = GetReactionColor(unit)
 
 		local class = classId and (LOCALIZED_CLASS_NAMES_MALE[classId] or LOCALIZED_CLASS_NAMES_FEMALE[classId])
 		local faction = UnitFactionGroup(unit)
@@ -66,9 +66,9 @@ local function ApplyColors(tooltip, unit)
 				local text = line:GetText()
 				if text and not issecretvalue(text) then
 					if class and text:find(class, 1, true) then
-						line:SetTextColor(lastColorR, lastColorG, lastColorB)
+						line:SetTextColor(_lastColorR, _lastColorG, _lastColorB)
 					elseif faction and text == faction then
-						line:SetTextColor(lastReactionR or lastColorR, lastReactionG or lastColorG, lastReactionB or lastColorB)
+						line:SetTextColor(_lastReactionR or _lastColorR, _lastReactionG or _lastColorG, _lastReactionB or _lastColorB)
 					elseif unitGuild and text:find(unitGuild, 1, true) then
 						if playerGuild and unitGuild == playerGuild then
 							line:SetTextColor(COLOR_ALLIED_GUILD.r, COLOR_ALLIED_GUILD.g, COLOR_ALLIED_GUILD.b)
@@ -80,21 +80,21 @@ local function ApplyColors(tooltip, unit)
 			end
 		end
 	else
-		lastReactionR, lastReactionG, lastReactionB = nil, nil, nil
+		_lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
 		local r, g, b = GetReactionColor(unit)
-		lastColorR, lastColorG, lastColorB = r or 1, g or 1, b or 1
+		_lastColorR, _lastColorG, _lastColorB = r or 1, g or 1, b or 1
 	end
 
-	GameTooltipTextLeft1:SetTextColor(lastReactionR or lastColorR, lastReactionG or lastColorG, lastReactionB or lastColorB)
+	GameTooltipTextLeft1:SetTextColor(_lastReactionR or _lastColorR, _lastReactionG or _lastColorG, _lastReactionB or _lastColorB)
 
-	SetTooltipBorderColors(border, lastColorR, lastColorG, lastColorB, lastReactionR, lastReactionG, lastReactionB)
-	SetTooltipStatusBarColor(lastColorR, lastColorG, lastColorB)
+	SetTooltipBorderColors(border, _lastColorR, _lastColorG, _lastColorB, _lastReactionR, _lastReactionG, _lastReactionB)
+	SetTooltipStatusBarColor(_lastColorR, _lastColorG, _lastColorB)
 end
 
 local function ForceReset(tooltip)
 	if tooltip ~= GameTooltip then return end
-	lastColorR, lastColorG, lastColorB = 1, 1, 1
-	lastReactionR, lastReactionG, lastReactionB = nil, nil, nil
+	_lastColorR, _lastColorG, _lastColorB = 1, 1, 1
+	_lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
 	local border = tooltip.NineSlice
 	if border then border:SetBorderColor(1, 1, 1) end
 	if GameTooltipStatusBar then
