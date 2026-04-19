@@ -112,8 +112,8 @@ end)
 GameTooltip:HookScript("OnUpdate", RepaintColors)
 GameTooltip:HookScript("OnHide", ForceReset)
 
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, ForceReset)
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, ForceReset)
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Action, ForceReset)
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Object, ForceReset)
-
+for _, value in pairs(Enum.TooltipDataType) do
+	if value ~= Enum.TooltipDataType.Unit then -- unit tips are only tips that fade in default UI
+		TooltipDataProcessor.AddTooltipPostCall(value, ForceReset)
+	end
+end
