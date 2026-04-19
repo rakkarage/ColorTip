@@ -109,6 +109,7 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 	ApplyColors(tooltip, unit)
 end)
 
+GameTooltip:HookScript("OnShow", RepaintColors)
 GameTooltip:HookScript("OnUpdate", RepaintColors)
 GameTooltip:HookScript("OnHide", ForceReset)
 
