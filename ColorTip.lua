@@ -1,10 +1,10 @@
 -- 🎨 ColorTip: Dynamic (class & reaction) tooltip name, border, and status bar.
 
-local COLOR_ALLIED_GUILD = { r = 1, g = 0.85, b = 0.1 }
-local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 }
-
 local lastColorR, lastColorG, lastColorB = 1, 1, 1
 local lastReactionR, lastReactionG, lastReactionB = nil, nil, nil
+
+local COLOR_ALLIED_GUILD = { r = 1, g = 0.85, b = 0.1 }
+local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 }
 
 local function GetReactionColor(unit)
 	local reaction = UnitReaction(unit, "player")
@@ -116,3 +116,4 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, ForceReset)
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, ForceReset)
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Action, ForceReset)
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Object, ForceReset)
+
