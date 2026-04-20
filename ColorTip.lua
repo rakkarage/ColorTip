@@ -3,8 +3,8 @@
 local _lastColorR, _lastColorG, _lastColorB = 1, 1, 1
 local _lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
 
-local COLOR_ALLIED_GUILD = { r = 1, g = 0.85, b = 0.1 }
-local COLOR_OTHER_GUILD = { r = 0.75, g = 0.6, b = 0.15 }
+local COLOR_ALLIED_GUILD = { r = 0.8, g = 0.8, b = 0.85 }
+local COLOR_OTHER_GUILD = { r = 0.6, g = 0.6, b = 0.65 }
 
 local function GetReactionColor(unit)
 	local reaction = UnitReaction(unit, "player")
