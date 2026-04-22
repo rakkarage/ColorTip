@@ -141,6 +141,25 @@ local function ResetState()
 	CustomStatusBar:Hide()
 end
 
+local function ForceReset(tooltip)
+	if tooltip ~= GameTooltip then return end
+
+	ResetState()
+
+	local border = tooltip.NineSlice
+	if border and border.TopEdge then
+		border.TopEdge:SetVertexColor(1, 1, 1)
+		border.TopLeftCorner:SetVertexColor(1, 1, 1)
+		border.TopRightCorner:SetVertexColor(1, 1, 1)
+		border.BottomEdge:SetVertexColor(1, 1, 1)
+		border.BottomLeftCorner:SetVertexColor(1, 1, 1)
+		border.BottomRightCorner:SetVertexColor(1, 1, 1)
+		border.LeftEdge:SetVertexColor(1, 1, 1)
+		border.RightEdge:SetVertexColor(1, 1, 1)
+		border:SetBorderColor(1, 1, 1)
+	end
+end
+
 local function ApplyCachedColors(tooltip)
 	if not _hasUnitColors then return end
 
@@ -309,6 +328,13 @@ if GameTooltipStatusBar then
 			SyncCustomStatusBar()
 		end
 	end)
+end
+
+for _, value in pairs(Enum.TooltipDataType) do
+	-- unit is only tooltip that blizzard fades, everything else should reset to prevent bleed
+	if value ~= Enum.TooltipDataType.Unit then
+		TooltipDataProcessor.AddTooltipPostCall(value, ForceReset)
+	end
 end
 
 SLASH_COLORTIPDEBUG1 = "/colortipdebug"
