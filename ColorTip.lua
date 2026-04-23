@@ -114,21 +114,10 @@ local function ScheduleRefreshes()
 end
 
 local function ResolveTooltipUnit(data)
-	local unit = data and data.unitToken
-	if unit and not issecretvalue(unit) and UnitExists(unit) then
-		return unit
-	end
-
-	unit = GetOwnerUnit(GameTooltip)
-	if unit then
-		return unit
-	end
-
-	if UnitExists("mouseover") then
-		return "mouseover"
-	end
-
-	return nil
+	return (data and data.unitToken and not issecretvalue(data.unitToken) and UnitExists(data.unitToken) and data.unitToken)
+		or GetOwnerUnit(GameTooltip)
+		or (UnitExists("mouseover") and "mouseover")
+		or nil
 end
 
 local function ApplyColors(tooltip, data)
