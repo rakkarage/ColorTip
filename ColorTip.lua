@@ -331,7 +331,6 @@ if GameTooltipStatusBar then
 end
 
 for _, value in pairs(Enum.TooltipDataType) do
-	-- unit is only tooltip that blizzard fades, everything else should reset to prevent bleed
 	if value ~= Enum.TooltipDataType.Unit then
 		TooltipDataProcessor.AddTooltipPostCall(value, ForceReset)
 	end
