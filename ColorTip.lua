@@ -105,6 +105,27 @@ local function ApplyColors(tooltip, data)
 	ApplyCachedColors()
 end
 
+local function ForceReset()
+	_lastColorR, _lastColorG, _lastColorB = 1, 1, 1
+	_lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
+	_hasUnitColors = false
+
+	GameTooltipStatusBarTexture:SetVertexColor(1, 1, 1)
+
+	local border = GameTooltip.NineSlice
+	if border and border.TopEdge then
+		border.TopEdge:SetVertexColor(1, 1, 1)
+		border.TopLeftCorner:SetVertexColor(1, 1, 1)
+		border.TopRightCorner:SetVertexColor(1, 1, 1)
+		border.BottomEdge:SetVertexColor(1, 1, 1)
+		border.BottomLeftCorner:SetVertexColor(1, 1, 1)
+		border.BottomRightCorner:SetVertexColor(1, 1, 1)
+		border.LeftEdge:SetVertexColor(1, 1, 1)
+		border.RightEdge:SetVertexColor(1, 1, 1)
+		border:SetBorderColor(1, 1, 1)
+	end
+end
+
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
 	ApplyColors(tooltip, data)
 end)
@@ -113,4 +134,20 @@ GameTooltip:HookScript("OnUpdate", function(tooltip)
 	if tooltip:IsShown() and tooltip:GetAlpha() > 0.1 and _hasUnitColors then
 		ApplyCachedColors()
 	end
+end)
+
+GameTooltip:HookScript("OnShow", function(_)
+	if _hasUnitColors then
+		ApplyCachedColors()
+	else
+		ForceReset()
+	end
+end)
+
+GameTooltip:HookScript("OnHide", function()
+	ForceReset()
+end)
+
+GameTooltip:HookScript("OnTooltipCleared", function()
+	ForceReset()
 end)
