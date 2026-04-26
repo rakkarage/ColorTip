@@ -3,8 +3,6 @@
 local _lastColorR, _lastColorG, _lastColorB = 1, 1, 1
 local _lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
 local _hasUnitColors = false
-local _startupRefreshUntil = 0
-local _applyGeneration = 0
 
 local COLOR_ALLIED_GUILD = { r = 0.8, g = 0.8, b = 0.85 }
 local COLOR_OTHER_GUILD = { r = 0.6, g = 0.6, b = 0.65 }
@@ -16,14 +14,6 @@ local function GetReactionColor(unit)
 		if c then return c.r, c.g, c.b end
 	end
 	return 1, 1, 1
-end
-
-local function StripColorCodes(text)
-	if not text then return nil end
-	if issecretvalue(text) then return nil end
-	text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
-	text = text:gsub("|r", "")
-	return text
 end
 
 local function GetOwnerUnit(tooltip)
@@ -49,8 +39,6 @@ local function ForceReset()
 	_lastColorR, _lastColorG, _lastColorB = 1, 1, 1
 	_lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
 	_hasUnitColors = false
-	_startupRefreshUntil = 0
-	_applyGeneration = _applyGeneration + 1
 
 	GameTooltipStatusBarTexture:SetVertexColor(1, 1, 1)
 
@@ -68,17 +56,6 @@ local function ForceReset()
 	end
 end
 
-local function ApplyTitleColor(r, g, b)
-	if not GameTooltipTextLeft1 then return end
-	local text = GameTooltipTextLeft1:GetText()
-	if not text or issecretvalue(text) then return end
-
-	text = StripColorCodes(text)
-	if not text or text == "" then return end
-
-	GameTooltipTextLeft1:SetFormattedText("|cff%02x%02x%02x%s|r", r * 255, g * 255, b * 255, text)
-end
-
 local function ApplyCachedColors()
 	if not _hasUnitColors then return end
 
@@ -86,8 +63,7 @@ local function ApplyCachedColors()
 	local r, g, b = _lastColorR, _lastColorG, _lastColorB
 	local rr, rg, rb = _lastReactionR or r, _lastReactionG or g, _lastReactionB or b
 
-	ApplyTitleColor(rr, rg, rb)
-
+	GameTooltipTextLeft1:SetTextColor(r, g, b)
 	GameTooltipStatusBarTexture:SetVertexColor(r, g, b)
 
 	if border and border.TopEdge then
@@ -99,17 +75,6 @@ local function ApplyCachedColors()
 		border.BottomRightCorner:SetVertexColor(r, g, b)
 		border.LeftEdge:SetGradient("VERTICAL", CreateColor(r, g, b), CreateColor(rr, rg, rb))
 		border.RightEdge:SetGradient("VERTICAL", CreateColor(r, g, b), CreateColor(rr, rg, rb))
-	end
-end
-
-local function ScheduleRefreshes()
-	local generation = _applyGeneration
-	for _, delay in ipairs({ 0, 0.02, 0.05 }) do
-		C_Timer.After(delay, function()
-			if generation ~= _applyGeneration then return end
-			if not GameTooltip:IsShown() or GameTooltip:GetAlpha() <= 0.1 then return end
-			ApplyCachedColors()
-		end)
 	end
 end
 
@@ -126,8 +91,6 @@ local function ApplyColors(tooltip, data)
 
 	local isPlayer = UnitIsPlayer(unit)
 	_hasUnitColors = true
-	_startupRefreshUntil = GetTime() + 0.12
-	_applyGeneration = _applyGeneration + 1
 	if isPlayer then
 		local _, classId = UnitClass(unit)
 		if classId then _lastColorR, _lastColorG, _lastColorB = GetClassColor(classId) end
@@ -161,13 +124,6 @@ local function ApplyColors(tooltip, data)
 	end
 
 	ApplyCachedColors()
-	ScheduleRefreshes()
-end
-
-local function RefreshOwnerUnitTooltip(tooltip)
-	local unit = GetOwnerUnit(tooltip)
-	if not unit then return end
-	ApplyColors(tooltip, nil)
 end
 
 TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tooltip, data)
@@ -175,17 +131,17 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, function(tool
 end)
 
 GameTooltip:HookScript("OnUpdate", function(tooltip)
-	if tooltip:IsShown() and tooltip:GetAlpha() > 0.1 and (_hasUnitColors or GetTime() < _startupRefreshUntil) then
+	if tooltip:IsShown() and tooltip:GetAlpha() > 0.1 and _hasUnitColors then
 		ApplyCachedColors()
-	else
-		RefreshOwnerUnitTooltip(tooltip)
 	end
 end)
 
-GameTooltip:HookScript("OnShow", function(tooltip)
-	RefreshOwnerUnitTooltip(tooltip)
-	ApplyCachedColors()
-	ScheduleRefreshes()
+GameTooltip:HookScript("OnShow", function(_)
+	if _hasUnitColors then
+		ApplyCachedColors()
+	else
+		ForceReset()
+	end
 end)
 
 GameTooltip:HookScript("OnHide", function()
@@ -195,10 +151,3 @@ end)
 GameTooltip:HookScript("OnTooltipCleared", function()
 	ForceReset()
 end)
-
--- Ensure colors are reset for non-unit tooltips as well, in case of reuse after a unit tooltip.
-for _, value in pairs(Enum.TooltipDataType) do
-	if value ~= Enum.TooltipDataType.Unit then
-		TooltipDataProcessor.AddTooltipPostCall(value, ForceReset)
-	end
-end
