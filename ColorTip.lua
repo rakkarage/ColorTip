@@ -7,15 +7,6 @@ local _hasUnitColors = false
 local COLOR_ALLIED_GUILD = { r = 0.8, g = 0.8, b = 0.85 }
 local COLOR_OTHER_GUILD = { r = 0.6, g = 0.6, b = 0.65 }
 
-local function GetReactionColor(unit)
-	local reaction = UnitReaction(unit, "player")
-	if reaction then
-		local c = FACTION_BAR_COLORS[reaction]
-		if c then return c.r, c.g, c.b end
-	end
-	return 1, 1, 1
-end
-
 local function GetOwnerUnit(tooltip)
 	local owner = tooltip and tooltip:GetOwner()
 	if not owner then return nil end
@@ -35,25 +26,20 @@ local function GetOwnerUnit(tooltip)
 	return nil
 end
 
-local function ForceReset()
-	_lastColorR, _lastColorG, _lastColorB = 1, 1, 1
-	_lastReactionR, _lastReactionG, _lastReactionB = nil, nil, nil
-	_hasUnitColors = false
+local function ResolveTooltipUnit(data)
+	return (data and data.unitToken and not issecretvalue(data.unitToken) and UnitExists(data.unitToken) and data.unitToken)
+		or GetOwnerUnit(GameTooltip)
+		or (UnitExists("mouseover") and "mouseover")
+		or nil
+end
 
-	GameTooltipStatusBarTexture:SetVertexColor(1, 1, 1)
-
-	local border = GameTooltip.NineSlice
-	if border and border.TopEdge then
-		border.TopEdge:SetVertexColor(1, 1, 1)
-		border.TopLeftCorner:SetVertexColor(1, 1, 1)
-		border.TopRightCorner:SetVertexColor(1, 1, 1)
-		border.BottomEdge:SetVertexColor(1, 1, 1)
-		border.BottomLeftCorner:SetVertexColor(1, 1, 1)
-		border.BottomRightCorner:SetVertexColor(1, 1, 1)
-		border.LeftEdge:SetVertexColor(1, 1, 1)
-		border.RightEdge:SetVertexColor(1, 1, 1)
-		border:SetBorderColor(1, 1, 1)
+local function GetReactionColor(unit)
+	local reaction = UnitReaction(unit, "player")
+	if reaction then
+		local c = FACTION_BAR_COLORS[reaction]
+		if c then return c.r, c.g, c.b end
 	end
+	return 1, 1, 1
 end
 
 local function ApplyCachedColors()
@@ -76,13 +62,6 @@ local function ApplyCachedColors()
 		border.LeftEdge:SetGradient("VERTICAL", CreateColor(r, g, b), CreateColor(rr, rg, rb))
 		border.RightEdge:SetGradient("VERTICAL", CreateColor(r, g, b), CreateColor(rr, rg, rb))
 	end
-end
-
-local function ResolveTooltipUnit(data)
-	return (data and data.unitToken and not issecretvalue(data.unitToken) and UnitExists(data.unitToken) and data.unitToken)
-		or GetOwnerUnit(GameTooltip)
-		or (UnitExists("mouseover") and "mouseover")
-		or nil
 end
 
 local function ApplyColors(tooltip, data)
@@ -134,20 +113,4 @@ GameTooltip:HookScript("OnUpdate", function(tooltip)
 	if tooltip:IsShown() and tooltip:GetAlpha() > 0.1 and _hasUnitColors then
 		ApplyCachedColors()
 	end
-end)
-
-GameTooltip:HookScript("OnShow", function(_)
-	if _hasUnitColors then
-		ApplyCachedColors()
-	else
-		ForceReset()
-	end
-end)
-
-GameTooltip:HookScript("OnHide", function()
-	ForceReset()
-end)
-
-GameTooltip:HookScript("OnTooltipCleared", function()
-	ForceReset()
 end)
